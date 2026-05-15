@@ -1,9 +1,10 @@
 #include <iostream>
-
 #include <cmath>
 #include <vector>
 #include <ctime>
+#include <memory>
 #include <algorithm>
+#include <thread>
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -23,7 +24,7 @@
 #define worldWidth 1500
 #define worldHeight 1000
 #define GENOME_SIZE 32
-#define WORLD_COUNT 4
+#define WORLD_COUNT 8
 
 using namespace std;
 using Genome = vector<vector<double>>;
@@ -38,6 +39,7 @@ int main() {
     SetTargetFPS(60);
 
     bool draw_graphics = true;
+    bool render_anything = true;
     bool draw_debug = true;
     bool capped_fps = true;
     bool paused = false;
@@ -49,7 +51,7 @@ int main() {
 
     // load textures ---------------------------------------------------------------------------
     
-    std::vector<Texture2D> textures;
+    vector<Texture2D> textures;
     textures.emplace_back(LoadTexture("../assets/millenium.png"));
     textures.emplace_back(LoadTexture("../assets/asteroid.png"));
     textures.emplace_back(LoadTexture("../assets/xwing.png"));
@@ -58,43 +60,35 @@ int main() {
 
     // create universe -------------------------------------------------------------------------
 
-    vector<World> universe;
+    vector<unique_ptr<World>> universe;
 
     // create first worlds with random genomes
-    for(int i=0; i<WORLD_COUNT ; i++){
-        World first_world = World(BOT_COUNT, ASTEROID_COUNT,worldWidth,worldHeight,CELL_SIZE, textures, gen_duration);
-        universe.push_back(first_world);
+    for(int i = 0; i < WORLD_COUNT; i++) {
+        universe.push_back(make_unique<World>(BOT_COUNT, ASTEROID_COUNT, worldWidth, worldHeight, CELL_SIZE, textures, gen_duration));
     }
     printf("starting generation %d ------------------------------- \n", generation);
     //------------------------------------------------------------------------------------------
 
     // main loop -------------------------------------------------------------------------------
     while (!WindowShouldClose()) {
-        
         //update worlds if not paused
         if(!paused){
-            for(int i = 0; i<WORLD_COUNT ; i++) universe[i].update();
+            for(int i = 0; i<WORLD_COUNT ; i++) universe[i]->update();
         }
 
         //on epoch finish:
-        if (all_of(universe.begin(), universe.end(), [&](auto& a) { return a.isFinished(); })){
+        if (all_of(universe.begin(), universe.end(), [&](auto& a) { return a->isFinished(); })){
             
             //take avg of scores from all universes
-            ScoredGenomeList avgScores = universe[0].getResult(); // save the genome from the first universe
-            printf("\n----\n");
+            ScoredGenomeList avgScores = universe[0]->getResult(); // save the genome from the first universe
             for(int j = 0; j < BOT_COUNT; j++){
-                    printf("score of bot %d in world %d: %f ", j, avgScores[j].second);
             }
-            printf("\n----\n");
-
             // accumulate bot scores to calculate avg
             for (int i=1; i<WORLD_COUNT; i++){
-                const ScoredGenomeList& currentUniverseResults = universe[i].getResult();
+                const ScoredGenomeList& currentUniverseResults = universe[i]->getResult();
                 for(int j = 0; j < BOT_COUNT; j++){
                     avgScores[j].second += currentUniverseResults[j].second;
-                    printf("score of bot %d in world %d: %f ", j, i, currentUniverseResults[j].second);
                 }
-                printf("\n----\n");
             }
 
             //free the universe
@@ -119,27 +113,27 @@ int main() {
             Genome next_genomes = evo.repopulation();
 
             //make new universes
-            for(int i=0; i<WORLD_COUNT; i++){
-                World new_world = World(BOT_COUNT, ASTEROID_COUNT,worldWidth,worldHeight,CELL_SIZE, textures, gen_duration, next_genomes);
-                universe.push_back(new_world);
+            for(int i = 0; i < WORLD_COUNT; i++) {
+                universe.push_back(std::make_unique<World>(BOT_COUNT, ASTEROID_COUNT, worldWidth, worldHeight, CELL_SIZE, textures, gen_duration, next_genomes));
             }
             generation++;
             printf("starting generation %d ------------------------------- \n", generation);
         }
 
         // Draw --------------------------------------------------------------------------------
+        if(render_anything){
         BeginDrawing();
             ClearBackground(BLACK);
 
             if(draw_graphics){
-                universe[0].Draw();
-                if(draw_debug) universe[0].DrawExtra();
+                universe[0]->Draw();
+                if(draw_debug) universe[0]->DrawExtra();
             }
             
             // GUI ----------------------------------------------------------------------------
             DrawFPS(worldWidth - 100, 10);
             DrawText(TextFormat("GENERATION: %i", generation), 10, 50, 20, GREEN);
-            DrawText(TextFormat("TIME: %i", universe[0].getTime()), 10, 85, 20, GREEN);
+            DrawText(TextFormat("TIME: %i", universe[0]->getTime()), 10, 85, 20, GREEN);
             DrawText(TextFormat("WORLDS: %d", WORLD_COUNT), 200, 50, 20, GREEN);
             GuiSliderBar((Rectangle){120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 3000);
             if (GuiButton((Rectangle){370, 20, 120, 30 }, "Toggle Graphics")) draw_graphics = !draw_graphics;
@@ -157,6 +151,7 @@ int main() {
             }
             //----------------------------------------------------------------------------------
         EndDrawing();
+        }
         //--------------------------------------------------------------------------------------
     }
     //------------------------------------------------------------------------------------------
