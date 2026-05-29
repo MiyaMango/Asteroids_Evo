@@ -10,6 +10,7 @@
 #include "raygui.h"
 #include "asteroid.hpp"
 #include "ship.hpp"
+#include "fitnessgraph.cpp"
 #include "entity.hpp"
 #include "world.hpp"
 #include "evolution.hpp"   
@@ -21,9 +22,9 @@
 #define ASTEROID_COUNT 10
 
 #define CELL_SIZE 32
-#define worldWidth 1500
-#define worldHeight 1000
-#define GENOME_SIZE 32
+#define worldWidth 1600
+#define worldHeight 1200
+#define GENOME_SIZE 36
 #define WORLD_COUNT 8
 
 using namespace std;
@@ -45,6 +46,7 @@ int main() {
     bool paused = false;
     float gen_duration = 2000;
     int generation = 1;
+    Fitness_graph graph = Fitness_graph(10,130,300,100);
     
     //------------------------------------------------------------------------------------------
 
@@ -100,13 +102,13 @@ int main() {
                 printf("avg score of bot %d in generation %d: %f\n", i, generation, avgScores[i].second);
             }
 
-            float avg_generation_score;
             float accum = 0;
             for (int i=0; i<BOT_COUNT; i++){
                 accum += avgScores[i].second;
             }
             accum /= BOT_COUNT*1.0;
             printf("generation %d avg score: %f\n", generation, accum);
+            graph.add_datapoint(accum);
 
             //use avg to evolve algorithm
             Evo evo(BOT_COUNT, avgScores, GENOME_SIZE);
@@ -121,8 +123,9 @@ int main() {
         }
 
         // Draw --------------------------------------------------------------------------------
-        if(render_anything){
+        
         BeginDrawing();
+        if(render_anything){
             ClearBackground(BLACK);
 
             if(draw_graphics){
@@ -132,13 +135,15 @@ int main() {
             
             // GUI ----------------------------------------------------------------------------
             DrawFPS(worldWidth - 100, 10);
+            graph.Draw();
             DrawText(TextFormat("GENERATION: %i", generation), 10, 50, 20, GREEN);
             DrawText(TextFormat("TIME: %i", universe[0]->getTime()), 10, 85, 20, GREEN);
             DrawText(TextFormat("WORLDS: %d", WORLD_COUNT), 200, 50, 20, GREEN);
-            GuiSliderBar((Rectangle){120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 3000);
-            if (GuiButton((Rectangle){370, 20, 120, 30 }, "Toggle Graphics")) draw_graphics = !draw_graphics;
-            if (GuiButton((Rectangle){500, 20, 100, 30 }, "Toggle Debug")) draw_debug = !draw_debug;
-            if (GuiButton((Rectangle){610, 20, 120, 30 }, "Toggle FPS cap")){
+            DrawText(TextFormat("ALIVE: %d", universe[0]->getAlive()), 320, 50, 10, GREEN);
+            GuiSliderBar({120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 3000);
+            if (GuiButton({370, 20, 120, 30 }, "Toggle Graphics")) draw_graphics = !draw_graphics;
+            if (GuiButton({500, 20, 100, 30 }, "Toggle Debug")) draw_debug = !draw_debug;
+            if (GuiButton({610, 20, 120, 30 }, "Toggle FPS cap")){
                 if(capped_fps){
                     SetTargetFPS(0);
                 }else{
@@ -146,12 +151,13 @@ int main() {
                 }
                 capped_fps = !capped_fps;
             }
-            if (GuiButton((Rectangle){740, 20, 50, 30 }, "Pause")){
+            if (GuiButton({740, 20, 50, 30 }, "Pause")){
                 paused = !paused;
             }
             //----------------------------------------------------------------------------------
-        EndDrawing();
         }
+        EndDrawing();
+
         //--------------------------------------------------------------------------------------
     }
     //------------------------------------------------------------------------------------------

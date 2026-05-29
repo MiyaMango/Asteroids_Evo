@@ -23,7 +23,7 @@ public:
     bool is_best;
 
     // Constructor
-    Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id);
+    Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id, std::function<void(void)> callback);
 
     // Overridden methods
     void update() override;

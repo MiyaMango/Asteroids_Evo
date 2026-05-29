@@ -4,6 +4,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <functional>
 
 using namespace std;
 #define PLAYER_ACTIVE false
@@ -33,7 +34,7 @@ finished(false)
     for(int i = 0; i < botCount; i++) {
         Ship* ship = dynamic_cast<Ship*>(Spawn_entity(2)); //create the ship
         vector<double> random_genome;
-            for(int j = 0; j < 32; j++){
+            for(int j = 0; j < 36; j++){
                 random_genome.push_back(get_random_double(0,50));
             }
         population.emplace_back(ship, random_genome); //put the bot in the ship
@@ -77,6 +78,10 @@ int World::getTime(){
     return timer;
 }
 
+int World::getAlive(){
+    return alive;
+}
+
 void World::setTime(int newTime){
     timer = newTime;
 }
@@ -101,18 +106,19 @@ vector<pair<vector<double>,float>> World::getResult(){
 //spawn a new entity. types: 0- player ship, 1- asteroid, 2- bot ship
 Entity* World::Spawn_entity(int type){
     Entity* new_entity;
+    std::function<void(void)> death_callback = [&](){alive--;};
 
     switch(type){
         case 0:
-            new_entity = new Ship(World_width/2, World_height/2, World_width, World_height, Textures[type], Entity_count++);
+            new_entity = new Ship(World_width/2, World_height/2, World_width, World_height, Textures[type], Entity_count++, death_callback);
         break;
 
         case 1:
-            new_entity = new Asteroid(World_width/2,World_height/2,World_width,World_height, Textures[type], Entity_count++);
+            new_entity = new Asteroid(World_width/2,World_height/2,World_width,World_height, Textures[type], Entity_count++, death_callback);
         break;
 
         case 2:
-            new_entity = new Ship(World_width/2,World_height/2,World_width,World_height, Textures[type], Entity_count++);
+            new_entity = new Ship(World_width/2,World_height/2,World_width,World_height, Textures[type], Entity_count++, death_callback);
             new_entity->collisionradius = 20;
             new_entity->type = 2;
         break;
@@ -134,6 +140,7 @@ void World::update(){
         finished = true;
         return;
     }
+
     timer++;
 
     grid.computeFOV(Entities); 

@@ -37,6 +37,7 @@ public:
 
     //getters & setters
     int getTime();
+    int getAlive();
     void setTime(int newTime);
     bool isFinished();
     std::vector<std::pair<std::vector<double>,float>> getResult();

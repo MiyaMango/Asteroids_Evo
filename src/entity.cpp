@@ -7,7 +7,7 @@ using namespace std;
 
 // constructor -----------------------------------------------------------------------------
 
-Entity::Entity(float x, float y, int window_w, int window_h, Texture2D& ent_texture, unsigned int id)
+Entity::Entity(float x, float y, int window_w, int window_h, Texture2D& ent_texture, unsigned int id, std::function<void(void)> callback)
 : texture(ent_texture),
 screenWidth(window_w),
 screenHeight(window_h),
@@ -25,8 +25,10 @@ collisionradius(0),
 id(id),
 active(true), 
 killable(false),
-alignment_coefficient(0)
-{}
+alignment_coefficient(0),
+callback(callback)
+{
+}
 // getters e setters ------------------------------------------------------------------------
 
 Vector2 Entity::get_position(){
@@ -43,6 +45,7 @@ float Entity::get_distanceMoved(){
 
 
 // methods ----------------------------------------------------------------------------------
+//entity update: returns 1 if entity died in this tick
 void Entity::update(){
     if(!active) return;
     timeGap--;
@@ -63,13 +66,17 @@ void Entity::update(){
             position.x -= speeds.x;
             speeds.x *= -1;
             coll_count++;
-            if(killable) kill();
+            if(killable){ 
+                kill();
+            }
     }
     if(position.y + speeds.y >= screenHeight || position.y + speeds.y <= 0){
             position.y -= speeds.y;
             speeds.y *= -1;
             coll_count++;
-            if(killable) kill();
+            if(killable){ 
+                kill();
+            }
     }
 }
 
@@ -145,6 +152,7 @@ void Entity::change_speed_collision(Entity* other) {
 
 void Entity::kill(){
     active = false;
+    callback();
 }
 
 void Entity::unstuck(Entity* other, float dist){

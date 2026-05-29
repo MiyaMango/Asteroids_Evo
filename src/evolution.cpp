@@ -99,8 +99,6 @@ vector<vector<double>> Evo::repopulation(){
 vector<double> Evo::gen_mutation(vector<double> original, double mut_percent, int max_mut_genes, int min_mut_genes){
     int muted_gen_num = GetRandomValue(min_mut_genes, max_mut_genes);
 
-    int x=0;
-
     vector<double> new_genoma = original;
     vector<bool> control(original.size(), false);
 

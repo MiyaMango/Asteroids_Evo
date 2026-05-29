@@ -2,12 +2,14 @@
 #define ENTITY
 
 #include "raylib.h"
+#include <functional>
 
 class Entity {
 
 private:
     Texture2D& texture;            // texture to use
     Rectangle source;              // region of the texture to use  
+    std::function<void(void)> callback;
 
 public:
     int screenHeight, screenWidth; // entity needs to know screen size   
@@ -31,7 +33,7 @@ public:
     unsigned int type;             // entity type (0 = player, 1 = asteroid, 2 = bot)
 
     // Constructor
-    Entity(float x, float y, int window_w, int window_h, Texture2D& ent_texture, unsigned int id);
+    Entity(float x, float y, int window_w, int window_h, Texture2D& ent_texture, unsigned int id, std::function<void(void)> callback);
 
     // Destructor
     virtual ~Entity() = default;

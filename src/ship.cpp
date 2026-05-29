@@ -1,6 +1,7 @@
 #include "ship.hpp"
 #include <raymath.h>
 #include <cmath>
+#include <functional>
 
 using namespace std;
 
@@ -19,10 +20,10 @@ enum class SensorType {
 };
 
 // constructor -----------------------------------------------------------------------------
-Ship::Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id)
-: Entity(x,y,window_w,window_h,ship_tex,id)
+Ship::Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id, std::function<void(void)> callback)
+: Entity(x,y,window_w,window_h,ship_tex,id,callback)
 {
-    acceleration           = 0.4;
+    acceleration           = 0.3;
     angular_acceleration   = 0.01;
     angular_drag           = 0.95;
     max_angular_velocity   = 0.1;
@@ -74,20 +75,20 @@ void Ship::movement(vector<bool> inputs){
     
     // thrust backward
     if (inputs[0]){
-        speeds.x -= 0.5*acceleration*cosf(facing_angle);
-        speeds.y -= 0.5*acceleration*sinf(facing_angle);
+        speeds.x -= acceleration*cosf(facing_angle);
+        speeds.y -= acceleration*sinf(facing_angle);
     }
 }
 
 void Ship::update()
 {   
     if(!active) return;
-
-    if(coll_count > 4){
+    Entity::update();
+    
+    if(coll_count > 4 && killable == false){
         killable = true;
     }
 
-    Entity::update();
     if(type == 0) movement(scan_inputs());
     angularvelocity *= angular_drag;
     speeds = { speeds.x*(float)drag, speeds.y*(float)drag };
@@ -97,7 +98,7 @@ void Ship::update()
     if(angularvelocity < -max_angular_velocity) angularvelocity = -max_angular_velocity;
 
     desired_movement_accumulator += abs_speed*alignment_coefficient;
-    score = desired_movement_accumulator*(1-0.1*coll_count);
+    score = desired_movement_accumulator*(1-0.15*coll_count);
     if(score < 0) score = 0;
 }
 
@@ -198,8 +199,6 @@ void Ship::update_sensor_with_entity(Entity* other) {
         float dist_to_surface = max(0.0f, dist - other->get_collRadius());
         float signal = 1.0f - (dist_to_surface / ray_max_dist);
         
-    float deg = angle_to_obj * RAD2DEG;
-    float sector_width = 25.0f; 
         if (signal < 0) signal = 0;
         if (signal > 1) signal = 1;
 
@@ -212,7 +211,7 @@ void Ship::update_sensor_with_entity(Entity* other) {
 vector<double> Ship::getSensors() const {
     vector<double> s((size_t)SensorType::COUNT);
 
-    s[(int)SensorType::Speed]  = abs_speed/20.0f;       // Speed divided by 20.0 for normalization
+    s[(int)SensorType::Speed]  = abs_speed/20.0f + 0.01;       // Speed divided by 20.0 for normalization
     s[(int)SensorType::Alignment] = alignment_coefficient;
 
     s[(int)SensorType::Ray_Left90]  = ray_sensors[0];
@@ -238,12 +237,12 @@ void Ship::DrawExtra(){
         
         float len = ray_max_dist;
         float ang_rad = facing_angle + angles[i] * DEG2RAD;
-        Vector2 end = {
-            position.x + cosf(ang_rad) * len,
-            position.y + sinf(ang_rad) * len
-        };
         
         //descomente isso para desenhar os cabelinhos sempre
+        // Vector2 end = {
+        //    position.x + cosf(ang_rad) * len,
+        //    position.y + sinf(ang_rad) * len
+        //};
         //DrawLineV(position, end, c);
         
         if(val > 0) {

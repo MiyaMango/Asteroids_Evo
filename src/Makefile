@@ -1,5 +1,5 @@
 CC=g++
-CCFLAGS=-c -MMD -MP -std=c++20 -I../raylib/include
+CCFLAGS=-c -MMD -MP -std=c++20 -O3 -I../raylib/include 
 LDFLAGS=-L../raylib/lib -lraylib -lm
 
 ifeq ($(OS), Windows_NT)

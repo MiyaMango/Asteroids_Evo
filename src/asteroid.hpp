@@ -12,7 +12,7 @@ class Asteroid : public Entity {
 
     public:
     // constructor
-    Asteroid(float x, float y, int window_w, int window_h, Texture2D& ast_tex, unsigned int id);
+    Asteroid(float x, float y, int window_w, int window_h, Texture2D& ast_tex, unsigned int id, std::function<void(void)> callback);
 };
 
 

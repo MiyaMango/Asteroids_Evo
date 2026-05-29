@@ -41,7 +41,6 @@ float Bot::get_coll_radius(){
 //after-round score post-processing
 float Bot::get_score(){
     score = ship->score;
-    if(ship->active == false) score /= 2.0;
     return score;
 }    
 
@@ -60,11 +59,13 @@ vector<bool> Bot::movement_decision(){
             weightedSum += (sensors[j] * genome[pos]);
         }
         double threshold = genome[gen_sensor_size * 4 + i];
-        
+    
         if(weightedSum >= threshold){
             output.push_back(true);
         }
         output.push_back(false);
+        
+
     }
     return(output); 
 }
