@@ -173,37 +173,64 @@ void Ship::sense_walls() {
 
 void Ship::update_sensor_with_entity(Entity* other) {
     if (!active || !other->active) return;
+
     Vector2 to_obj = { other->get_position().x - position.x, other->get_position().y - position.y };
-    float dist_sq = to_obj.x*to_obj.x + to_obj.y*to_obj.y;
+    float dist_sq = to_obj.x * to_obj.x + to_obj.y * to_obj.y;
     
+    // if the object's closest possible edge is beyond our max ray distance, skip it
     float max_reach = ray_max_dist + other->get_collRadius();
     if (dist_sq > max_reach * max_reach) return;
 
-    float dist = sqrtf(dist_sq);
-    float angle_to_obj = atan2f(to_obj.y, to_obj.x) - facing_angle;
+    float sensor_angles_deg[5] = {-90.0f, -45.0f, 0.0f, 45.0f, 90.0f};
     
-    while (angle_to_obj <= -PI) angle_to_obj += 2*PI;
-    while (angle_to_obj > PI) angle_to_obj -= 2*PI;
+    // Check intersection for each of the 5 sensor rays
+    for (int i = 0; i < 5; ++i) {
+        // 1. Calculate the actual world angle and direction of this specific ray
+        float ray_angle = facing_angle + (sensor_angles_deg[i] * (PI / 180.0f));
+        Vector2 ray_dir = { cosf(ray_angle), sinf(ray_angle) };
+        
+        // 2. Project the vector pointing to the object onto the ray's direction vector
+        // This finds the closest point on the ray's infinite line to the object's center
+        float tca = (to_obj.x * ray_dir.x) + (to_obj.y * ray_dir.y);
+        
+        // 3. If tca is negative, the object's center is behind the ship.
+        // We only care if we are somehow spawned *inside* the object's radius.
+        if (tca < 0.0f && dist_sq > (other->get_collRadius() * other->get_collRadius())) {
+            continue; 
+        }
+        
+        // 4. Calculate the perpendicular distance squared from the object's center to the ray
+        float d2 = dist_sq - (tca * tca);
+        float radius_sq = other->get_collRadius() * other->get_collRadius();
+        
+        // 5. If that distance is greater than the radius, the ray misses the circle completely
+        if (d2 > radius_sq) {
+            continue; 
+        }
+        
+        // 6. The ray hits! Calculate the exact distance to the circle's surface
+        float thc = sqrtf(radius_sq - d2); // Distance from the projected center to the edge
+        float dist_to_surface = tca - thc; 
+        
+        // If we are currently inside the object, distance to surface is 0
+        if (dist_to_surface < 0.0f) {
+            dist_to_surface = 0.0f;
+        }
 
-    float deg = angle_to_obj * RAD2DEG;
-    float sector_width = 25.0f; 
-    int sensor_idx = -1;
+        // If the surface is further than the sensor can see, ignore it
+        if (dist_to_surface > ray_max_dist) {
+            continue;
+        }
 
-    if      (deg >= -90 - sector_width && deg <= -90 + sector_width) sensor_idx = 0; 
-    else if (deg >= -45 - sector_width && deg <= -45 + sector_width) sensor_idx = 1; 
-    else if (deg >=   0 - sector_width && deg <=   0 + sector_width) sensor_idx = 2; 
-    else if (deg >=  45 - sector_width && deg <=  45 + sector_width) sensor_idx = 3; 
-    else if (deg >=  90 - sector_width && deg <=  90 + sector_width) sensor_idx = 4; 
-
-    if (sensor_idx != -1) {
-        float dist_to_surface = max(0.0f, dist - other->get_collRadius());
+        // 7. Calculate the signal strength (1.0 = touching, 0.0 = at max distance)
         float signal = 1.0f - (dist_to_surface / ray_max_dist);
         
-        if (signal < 0) signal = 0;
-        if (signal > 1) signal = 1;
+        if (signal < 0.0f) signal = 0.0f;
+        if (signal > 1.0f) signal = 1.0f;
 
-        if (signal > ray_sensors[sensor_idx]) {
-            ray_sensors[sensor_idx] = signal;
+        // 8. Apply the signal if it's the strongest one we've seen so far on this sensor
+        if (signal > ray_sensors[i]) {
+            ray_sensors[i] = signal;
         }
     }
 }

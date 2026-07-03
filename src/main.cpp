@@ -43,6 +43,7 @@ int main() {
     SetTargetFPS(60);
 
     bool draw_graphics = true;
+    bool player_active = false;
     bool render_anything = true;
     bool draw_debug = true;
     bool capped_fps = true;
@@ -77,7 +78,7 @@ int main() {
 
     // create first worlds with random genomes
     for(int i = 0; i < WORLD_COUNT; i++) {
-        universe.push_back(make_unique<World>(BOT_COUNT, ASTEROID_COUNT, worldWidth, worldHeight, CELL_SIZE, textures, gen_duration));
+        universe.push_back(make_unique<World>(BOT_COUNT, ASTEROID_COUNT, worldWidth, worldHeight, CELL_SIZE, textures, gen_duration, player_active));
     }
 
     // Initialize Thread Pool
@@ -109,27 +110,46 @@ int main() {
         //on epoch finish:
         if (all_of(universe.begin(), universe.end(), [&](auto& a) { return a->isFinished(); })){
             
-            //take avg of scores from all universes
-            ScoredGenomeList avgScores = universe[0]->getResult(); // save the genome from the first universe
-            for(int j = 0; j < BOT_COUNT; j++){
+            //get results from all worlds
+            vector<ScoredGenomeList> all_results;
+            for(int i = 0; i < WORLD_COUNT; i++) {
+                all_results.push_back(universe[i]->getResult());
             }
-            // accumulate bot scores to calculate avg
-            for (int i=1; i<WORLD_COUNT; i++){
-                const ScoredGenomeList& currentUniverseResults = universe[i]->getResult();
-                for(int j = 0; j < BOT_COUNT; j++){
-                    avgScores[j].second += currentUniverseResults[j].second;
+
+            //save genomes from first world
+            ScoredGenomeList avgScores = all_results[0]; 
+
+            //get trimmed avg for each bot
+            for (int j = 0; j < BOT_COUNT; j++) {
+                vector<float> bot_scores;
+                
+                //get this bot's scores from all worlds
+                for (int i = 0; i < WORLD_COUNT; i++) {
+                    bot_scores.push_back(all_results[i][j].second);
                 }
+
+                //sort the scores
+                sort(bot_scores.begin(), bot_scores.end());
+
+                float score_sum = 0.0f;
+                int valid_scores = 0;
+
+                //ignore the highest and lowest
+                for (int k = 1; k < WORLD_COUNT - 1; k++) {
+                    score_sum += bot_scores[k];
+                    valid_scores++;
+                }
+
+                //put the avg in results list
+                avgScores[j].second = score_sum/valid_scores;
+                
+                logfile << format("avg score of bot {:d} in generation {:d} {:f}\n", j, generation, avgScores[j].second);
             }
 
             //free the universe
             universe.clear();
 
-            //calculate avg
-            for (int i=0; i<BOT_COUNT; i++){
-                avgScores[i].second /= WORLD_COUNT;
-                logfile << format("avg score of bot {:d} in generation {:d} {:f}\n", i, generation, avgScores[i].second);
-            }
-
+            //add info to graph
             float accum = 0;
             for (int i=0; i<BOT_COUNT; i++){
                 accum += avgScores[i].second;
@@ -144,7 +164,9 @@ int main() {
 
             //make new universes
             for(int i = 0; i < WORLD_COUNT; i++) {
-                universe.push_back(std::make_unique<World>(BOT_COUNT, ASTEROID_COUNT, worldWidth, worldHeight, CELL_SIZE, textures, gen_duration, next_genomes));
+                bool spawn = false;
+                if(i == 0) spawn = player_active;
+                universe.push_back(std::make_unique<World>(BOT_COUNT, ASTEROID_COUNT, worldWidth, worldHeight, CELL_SIZE, textures, gen_duration, next_genomes, spawn));
             }
             generation++;
             logfile << format("starting generation {:d} ------------------------------- \n", generation);
@@ -171,7 +193,8 @@ int main() {
             GuiSliderBar({120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 3000);
             if (GuiButton({370, 20, 120, 30 }, "Toggle Graphics")) draw_graphics = !draw_graphics;
             if (GuiButton({500, 20, 100, 30 }, "Toggle Debug")) draw_debug = !draw_debug;
-            if (GuiButton({610, 20, 120, 30 }, "Toggle FPS cap")){
+            if (GuiButton({610, 20, 100, 30 }, "Toggle Player")) player_active = !player_active;
+            if (GuiButton({730, 20, 120, 30 }, "Toggle FPS cap")){
                 if(capped_fps){
                     SetTargetFPS(0);
                 }else{
@@ -179,7 +202,7 @@ int main() {
                 }
                 capped_fps = !capped_fps;
             }
-            if (GuiButton({740, 20, 50, 30 }, "Pause")){
+            if (GuiButton({870, 20, 50, 30 }, "Pause")){
                 paused = !paused;
             }
             //----------------------------------------------------------------------------------

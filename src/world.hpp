@@ -18,6 +18,7 @@ private:
     int Duration;                   //number of ticks to simulate
     int timer;                      //ticks passed
     bool finished;                  //is simulation done
+    bool PLAYER_ACTIVE;             //spawn player in this world
 
     const float Cell_size;          //size of unit square for collision
     int World_width;                //width
@@ -30,9 +31,11 @@ private:
 
 public:
 
+    
+
     //constructors & destructors
-    World(int botCount, int obstCount, int width, int height, float cell_size, std::vector<Texture2D>& textures, int duration);
-    World(int botCount, int obstCount, int width, int height, float cell_size, std::vector<Texture2D>& textures, int duration, std::vector<std::vector<double>> genomes);
+    World(int botCount, int obstCount, int width, int height, float cell_size, std::vector<Texture2D>& textures, int duration, bool spawnplayer);
+    World(int botCount, int obstCount, int width, int height, float cell_size, std::vector<Texture2D>& textures, int duration, std::vector<std::vector<double>> genomes, bool spawnplayer);
     ~World();
 
     //getters & setters

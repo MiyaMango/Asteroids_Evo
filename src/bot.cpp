@@ -64,8 +64,7 @@ vector<bool> Bot::movement_decision(){
             output.push_back(true);
         }
         output.push_back(false);
-        
-
+    
     }
     return(output); 
 }

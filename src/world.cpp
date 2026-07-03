@@ -7,10 +7,11 @@
 #include <functional>
 
 using namespace std;
-#define PLAYER_ACTIVE false
     
 // constructors & destructors
-World::World(int botCount, int obstCount, int width, int height, float cell_size, vector<Texture2D>& textures, int duration)
+
+//make world from random genes
+World::World(int botCount, int obstCount, int width, int height, float cell_size, vector<Texture2D>& textures, int duration, bool spawnplayer)
 :Max_entities(botCount + obstCount + 1),
 Entity_count(0),
 World_width(width),
@@ -20,7 +21,8 @@ Cell_size(cell_size),
 grid(cell_size),
 Duration(duration),
 timer(0),
-finished(false)
+finished(false),
+PLAYER_ACTIVE(spawnplayer)
 {
     // spawn player
     if(PLAYER_ACTIVE) Spawn_entity(0);
@@ -41,7 +43,8 @@ finished(false)
     }
 }
 
-World::World(int botCount, int obstCount, int width, int height, float cell_size, vector<Texture2D>& textures, int duration, vector<vector<double>> genomes)
+//make world from list of genes
+World::World(int botCount, int obstCount, int width, int height, float cell_size, vector<Texture2D>& textures, int duration, vector<vector<double>> genomes, bool spawnplayer)
 :Max_entities(botCount + obstCount + 1),
 Entity_count(0),
 World_width(width),
@@ -51,7 +54,8 @@ Cell_size(cell_size),
 grid(cell_size),
 Duration(duration),
 timer(0),
-finished(false)
+finished(false),
+PLAYER_ACTIVE(spawnplayer)
 {
     // spawn player
     if(PLAYER_ACTIVE) Spawn_entity(0);
