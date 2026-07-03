@@ -4,4 +4,4 @@ Their goal is simply to move forward as much as possible. Robots, which control 
 This project is ongoing and in early development. 
 The makefile only works for windows right now. God forgive me for I have sinned.
 
-To compile and run on windows: Install w64devkit (or a similar tool), navigate to the /src directory, and use 'make run'.
+To compile and run on windows: Navigate to the /src directory, and use ``'make run'``.
