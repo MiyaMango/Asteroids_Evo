@@ -1,8 +1,0 @@
--- STARTING NEW SIMULATION --
-Initial params:
-WORLD_COUNT: 8
-GENOME_SIZE: 36
-WORLD WIDTH: 1600
-WORLD HEIGHT: 1000
-GENERATION DURATION: 2000
-starting generation 1 ------------------------------- 
