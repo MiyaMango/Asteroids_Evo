@@ -18,6 +18,7 @@ main: $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 ../build/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) -o $@ $<
 
 clean:
