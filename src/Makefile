@@ -1,25 +1,26 @@
 CC=g++
 CCFLAGS=-c -MMD -MP -std=c++20 -O3 -I../raylib/include 
-LDFLAGS=-L../raylib/lib -lraylib -lm
+LDFLAGS=-L../raylib/lib -lm
 
 ifeq ($(OS), Windows_NT)
-	LDFLAGS+=-lgdi32 -lwinmm
+	LDFLAGS+=-lraylib -lgdi32 -lwinmm
+	EXE=main.exe
+else
+	LDFLAGS+=-lraylib_linux -lGL -lm -lpthread -ldl -lrt -lX11
+	EXE=main
 endif
 
-SRC=$(shell find * -name "*.cpp")
-OBJ = $(patsubst %.cpp, ../build/%.o, $(SRC))
+SRC=$(shell find . -name "*.cpp")
+OBJ = $(patsubst ./%.cpp, ../build/%.o, $(SRC))
 
-all: main
+all: $(EXE)
 
-run: main
-	./main
+run: $(EXE)
+	./$(EXE)
 
-main: $(OBJ)
+$(EXE): $(OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 ../build/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) -o $@ $<
-
-clean:
-	rm -f main main.exe $(OBJ)

@@ -3,7 +3,7 @@
 
 #include <raylib.h>
 #include <vector>
-#include "Entity.hpp"
+#include "entity.hpp"
 
 class Ship : public Entity {
 private:
