@@ -5,4 +5,5 @@ This project is ongoing and in early development.
 
 To compile and run on Windows: Install [w64devkit](https://github.com/skeeto/w64devkit). Navigate to the /src directory, and use ``'make run'``.
 
-To compile and run on Linux: Make sure you have the ``'libgl1-mesa-dev'`` package installed. If you don't, install it using ``sudo apt install libgl1-mesa-dev``. Navigate to the /src directory, and use ``'make run'``.
+To compile and run on Linux: Make sure you have the ``'libgl1-mesa-dev'`` package installed. If you don't, install it using ``sudo apt install libgl1-mesa-dev``.
+Navigate to the /src directory, and use ``'make run'``.
