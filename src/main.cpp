@@ -26,8 +26,8 @@
 #define CELL_SIZE 32
 #define worldWidth 1600
 #define worldHeight 1000
-#define GENOME_SIZE 36
-#define WORLD_COUNT 16
+#define GENOME_SIZE 32
+#define WORLD_COUNT 8
 
 using namespace std;
 using Genome = vector<vector<double>>;

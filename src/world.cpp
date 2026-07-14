@@ -36,8 +36,8 @@ PLAYER_ACTIVE(spawnplayer)
     for(int i = 0; i < botCount; i++) {
         Ship* ship = dynamic_cast<Ship*>(Spawn_entity(2)); //create the ship
         vector<double> random_genome;
-            for(int j = 0; j < 36; j++){
-                random_genome.push_back(get_random_double(0,50));
+            for(int j = 0; j < 32; j++){
+                random_genome.push_back(get_random_double(-1,1));
             }
         population.emplace_back(ship, random_genome); //put the bot in the ship
     }

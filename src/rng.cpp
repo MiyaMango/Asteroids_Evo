@@ -4,6 +4,12 @@
 using namespace std;
 
 double get_random_double(double min, double max) {
+    if(max < min){
+        double aux = max;
+        max = min;
+        min = aux;
+    }
+    
     // Generate a random integer in a safe range, e.g., 0 to 1,000,000
     int precision = 1000000; // adjust for desired fractional precision
     int randInt = GetRandomValue(0, precision);
@@ -29,17 +35,4 @@ vector<double> random_double_vector(int size, double min, double max){
         output[i] = get_random_double(min, max);
     }
     return output;
-}
-
-double random_double_sign(double num_original){
-    int sign = GetRandomValue(0, 1);
-
-    if(sign == 0){
-        return(num_original);
-    }
-    else if(sign == 1){
-        return(num_original * (-1));
-    }
-
-    return(num_original);
 }

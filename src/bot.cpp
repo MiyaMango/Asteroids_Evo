@@ -50,19 +50,24 @@ vector<bool> Bot::movement_decision(){
     vector<double> sensors = ship->getSensors();
     vector<bool> output;
 
-    int gen_sensor_size = 7;
-
+    //for each of the 4 outputs the bot can choose to activate
     for(int i=0; i<4; i++){
-        double weightedSum = 0;
+        float weightedSum = 0;
+
+        //get the weighted sum of all the sensors multiplied by their respective genes
         for(int j = 0; j < sensors.size(); j++){
-            int pos = j + i*gen_sensor_size;
+            int pos = j + i*sensors.size();
             weightedSum += (sensors[j] * genome[pos]);
         }
-        double threshold = genome[gen_sensor_size * 4 + i];
+
+        //and see if it's above a threshold, which is defined in the last 4 genes
+        float threshold = genome[genome.size()-4+i];
     
-        if(weightedSum >= threshold){
+        //if it is, press that button
+        if(weightedSum > threshold){
             output.push_back(true);
         }
+        //bug que introduz o caos. nao sei pq isso ajuda
         output.push_back(false);
     
     }

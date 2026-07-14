@@ -112,12 +112,14 @@ vector<double> Evo::gen_mutation(vector<double> original, double mut_percent, in
         // marca control na posicao com 1 para nao acessar mais aquela casa
         control[pos_gene] = 1;
 
-        double mutation = random_double_sign(get_random_double(0, original[pos_gene]*mut_percent));
+        //módulo da mutaçao: é algo aleatório entre nada e mut percent * gene original
+        double mutation = get_random_double(0, original[pos_gene]*mut_percent);
 
-        while(mutation <= -1*original[pos_gene]){
-            mutation = random_double_sign(get_random_double(0, original[pos_gene]*mut_percent));
-        }
+        //mutaçao pode ser aleatoriamente pra cima ou pra baixo
+        int rand = GetRandomValue(0,1);
+        if(rand) mutation = mutation*(-1);
 
+        //colocar o gene mutado no lugar
         new_genoma[pos_gene] = original[pos_gene] + mutation;
     }
 
